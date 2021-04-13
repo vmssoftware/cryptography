@@ -192,6 +192,9 @@ class TestOpenSSLRandomEngine(object):
     @pytest.mark.skipif(
         sys.executable is None, reason="No Python interpreter available."
     )
+    @pytest.mark.skipif(
+        sys.platform == 'OpenVMS', reason="OpenVMS does not allow output to file."
+    )
     def test_osrandom_engine_is_default(self, tmpdir):
         engine_printer = textwrap.dedent(
             """

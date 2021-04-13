@@ -6,7 +6,7 @@
   #include <fcntl.h>
   #include <unistd.h>
    /* for defined(BSD) */
-  #ifndef __MVS__
+  #if !defined(__MVS__) && !defined(__VMS)
     #include <sys/param.h>
   #endif
 
@@ -61,6 +61,8 @@
   #elif defined(__linux__) && defined(SYS_getrandom)
     /* Linux 3.17+ */
     #define CRYPTOGRAPHY_OSRANDOM_ENGINE CRYPTOGRAPHY_OSRANDOM_ENGINE_GETRANDOM
+  #elif defined(__VMS)
+    #define CRYPTOGRAPHY_OSRANDOM_ENGINE CRYPTOGRAPHY_OSRANDOM_ENGINE_GETENTROPY
   #else
     /* Keep this as last entry, fall back to /dev/urandom */
     #define CRYPTOGRAPHY_OSRANDOM_ENGINE CRYPTOGRAPHY_OSRANDOM_ENGINE_DEV_URANDOM

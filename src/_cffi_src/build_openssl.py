@@ -41,6 +41,13 @@ def _get_openssl_libraries(platform):
         # (https://github.com/pyca/cryptography/issues/5084)
         if sys.platform == "zos":
             return ["ssl", "crypto"]
+        elif sys.platform == "OpenVMS":
+            if os.getenv('SSL111$ROOT'):
+                return ["/sys$library/ssl111$libssl_shr32.exe", "/sys$library/ssl111$libcrypto_shr32.exe"]
+            elif os.getenv('SSL1$ROOT'):
+                return ["/sys$library/ssl1$libssl_shr32.exe", "/sys$library/ssl1$libcrypto_shr32.exe"]
+            else:
+                return ["/sys$library/ssl$libssl_shr32.exe", "/sys$library/ssl$libcrypto_shr32.exe"]
         else:
             return ["ssl", "crypto", "pthread"]
 
@@ -56,6 +63,14 @@ def _extra_compile_args(platform):
     """
     # make sure the compiler used supports the flags to be added
     is_gcc = False
+    if platform == "OpenVMS":
+        return [    \
+            # '/DEFINE=(_USE_STD_STAT)',
+            # '/WARNINGS=DISABLE=('   \
+            # 'INTCONSTTRUNC,'        \
+            # 'NOTCONSTQUAL,'         \
+            # 'QUESTCOMPARE)'         \
+            ]
     if get_default_compiler() == "unix":
         d = dist.Distribution()
         cmd = config(d)

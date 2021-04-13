@@ -5,6 +5,7 @@
  * OpenBSD 5.6+    getentropy()
  * other BSD       getentropy() if SYS_getentropy is defined
  * Linux 3.17+     getrandom() with fallback to /dev/urandom
+ * OpenVMS         getentropy_vms()
  * other           /dev/urandom with cached fd
  *
  * The /dev/urandom, getrandom and getentropy code is derived from Python's
@@ -21,6 +22,51 @@
 /* OpenSSL has ENGINE support and is older than 1.1.1d (the first version that
  * properly implements fork safety in its RNG) so build the engine. */
 static const char *Cryptography_osrandom_engine_id = "osrandom";
+
+/****************************************************************************
+ * OpenVMS
+ */
+#ifdef __VMS
+
+#define getentropy getentropy_vms
+
+#define __builtin_unreachable() do { printf("Oh noes!!!111\n"); abort(); } while(0)
+
+//
+// Credits:
+// ========
+//	License: Creative Commons CC0
+//		http://creativecommons.org/publicdomain/zero/1.0/legalcode
+//	Author:	James Sainsbury
+//		toves@sdf.lonestar.org
+//
+#include <timers.h>
+
+static
+int getentropy_vms (unsigned char *entropy, size_t entropy_size)
+{
+	static unsigned short   seed[3] = {0};
+    static unsigned short   seed_init = 0;
+
+    if (!seed_init) {
+        struct timespec tv;
+        getclock(TIMEOFDAY, &tv);
+        memcpy(&seed, ((unsigned char*)&tv) + (sizeof(tv) - sizeof(seed)), sizeof(seed));
+        seed_init = 1;
+    }
+
+	int	i	= 0;
+	int	step	= sizeof(RAND_MAX); // Xrand48 return 32 bit "longs"
+	long	r	= jrand48(seed);
+	while ((i+step) < entropy_size) {
+		memcpy (&entropy[i], &r, step);
+		r	= jrand48(seed);
+		i	+= step;
+	}
+	memcpy (&entropy[i], &r, (entropy_size - i));
+	return	0;
+}
+#endif
 
 /****************************************************************************
  * Windows
@@ -279,10 +325,14 @@ static int osrandom_rand_bytes(unsigned char *buffer, int size) {
             /* OpenBSD and macOS restrict maximum buffer size to 256. */
             len = size > 256 ? 256 : size;
 /* on mac, availability is already checked using `__builtin_available` above */
+#ifndef __VMS
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability"
+#endif
             res = getentropy(buffer, (size_t)len);
+#ifndef __VMS
 #pragma clang diagnostic pop
+#endif
             if (res < 0) {
                 ERR_Cryptography_OSRandom_error(
                     CRYPTOGRAPHY_OSRANDOM_F_RAND_BYTES,

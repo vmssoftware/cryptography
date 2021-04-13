@@ -45,7 +45,7 @@ setuptools_rust = "setuptools-rust>=0.11.4"
 install_requirements = ["cffi>=1.12"]
 setup_requirements = install_requirements + [setuptools_rust]
 
-if os.environ.get("CRYPTOGRAPHY_DONT_BUILD_RUST"):
+if os.getenv('CRYPTOGRAPHY_DONT_BUILD_RUST'):
     rust_extensions = []
 else:
     rust_extensions = [

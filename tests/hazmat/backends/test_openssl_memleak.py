@@ -225,6 +225,7 @@ class TestAssertNoMemoryLeaks(object):
                 )
             )
 
+    @pytest.mark.skipif(sys.platform == "OpenVMS", reason="it hangs")
     def test_errors(self):
         with pytest.raises(ValueError):
             assert_no_memory_leaks(
