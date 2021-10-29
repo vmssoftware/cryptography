@@ -42,12 +42,16 @@ def _get_openssl_libraries(platform):
         if sys.platform == "zos":
             return ["ssl", "crypto"]
         elif sys.platform == "OpenVMS":
-            if os.getenv('SSL111$ROOT'):
-                return ["/sys$library/ssl111$libssl_shr32.exe", "/sys$library/ssl111$libcrypto_shr32.exe"]
-            elif os.getenv('SSL1$ROOT'):
-                return ["/sys$library/ssl1$libssl_shr32.exe", "/sys$library/ssl1$libcrypto_shr32.exe"]
-            else:
-                return ["/sys$library/ssl$libssl_shr32.exe", "/sys$library/ssl$libcrypto_shr32.exe"]
+            import struct
+            lib_suffix = ''
+            if struct.calcsize('P') == 4:
+                lib_suffix = '32'
+            for ssl_ver in ['SSL111', 'SSL1']:
+                if os.getenv(ssl_ver + '$root', False):
+                    return [
+                        f'/{ssl_ver}$root/lib/{ssl_ver}$libssl{lib_suffix}.olb',
+                        f'/{ssl_ver}$root/lib/{ssl_ver}$libcrypto{lib_suffix}.olb',
+                    ]
         else:
             return ["ssl", "crypto", "pthread"]
 
