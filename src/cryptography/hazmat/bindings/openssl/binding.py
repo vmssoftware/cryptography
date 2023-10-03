@@ -43,7 +43,7 @@ def _consume_errors(lib):
             break
 
         err_lib = lib.ERR_GET_LIB(code)
-        err_func = lib.ERR_GET_FUNC(code)
+        # err_func = lib.ERR_GET_FUNC(code) # OpenVMS # ERR_GET_FUNC() was removed in OpenSSL 3.0.
         err_reason = lib.ERR_GET_REASON(code)
 
         errors.append(_OpenSSLError(code, err_lib, err_func, err_reason))

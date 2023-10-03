@@ -46,7 +46,7 @@ def _get_openssl_libraries(platform):
             lib_suffix = ''
             if struct.calcsize('P') == 4:
                 lib_suffix = '32'
-            for ssl_ver in ['SSL111', 'SSL1']:
+            for ssl_ver in ['SSL3','SSL111', 'SSL1']:
                 if os.getenv(ssl_ver + '$root', False):
                     return [
                         f'/{ssl_ver}$root/lib/{ssl_ver}$libssl{lib_suffix}.olb',

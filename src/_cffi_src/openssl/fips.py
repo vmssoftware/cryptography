@@ -17,7 +17,8 @@ int FIPS_mode(void);
 """
 
 CUSTOMIZATIONS = """
-#if CRYPTOGRAPHY_IS_LIBRESSL
+#if CRYPTOGRAPHY_IS_LIBRESSL || defined(__VMS)
+/* OpenVMS has no FIPS in SSL3 */
 static const long Cryptography_HAS_FIPS = 0;
 int (*FIPS_mode_set)(int) = NULL;
 int (*FIPS_mode)(void) = NULL;
